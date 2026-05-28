@@ -1,0 +1,73 @@
+{
+  "entities": {
+    "UserProgress": {
+      "title": "UserProgress",
+      "description": "User specific application status, 90-days progress logs and completed videos tracker",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "The unique creator user ID" },
+        "completedDays": { "type": "array", "description": "Array of day integers corresponding to completed protocol days (e.g., [1, 2, 3])" },
+        "completedVideos": { "type": "array", "description": "Array of strings corresponding to watched videos identifiers" },
+        "coreJugoDrunk": { "type": "boolean", "description": "Flag representing whether the user drank the mandatory uterine monthly juice today" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Last updated UTC timestamp" }
+      },
+      "required": ["userId", "updatedAt"]
+    },
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "The detailed clinical and demographic ginecological markers of the patient",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "The unique credential owner ID" },
+        "nombreCompleto": { "type": "string" },
+        "edad": { "type": "string" },
+        "pais": { "type": "string" },
+        "whatsapp": { "type": "string" },
+        "flujoIntensidad": { "type": "string" },
+        "duracionCiclo": { "type": "string" },
+        "coagulosFrecuencia": { "type": "string" },
+        "lacteosYAzucar": { "type": "string" },
+        "estresNivel": { "type": "integer" },
+        "suenoHoras": { "type": "string" },
+        "energiaNivel": { "type": "string" },
+        "actividadFisica": { "type": "string" },
+        "saludDigestiva": { "type": "string" },
+        "historialMedico": { "type": "array" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "nombreCompleto", "updatedAt"]
+    },
+    "BleedingLog": {
+      "title": "BleedingLog",
+      "description": "Uterine flow, pain level and emotional symptom logs tracked over time",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Calculated log document identifier" },
+        "userId": { "type": "string", "description": "The tracking user ID" },
+        "date": { "type": "string" },
+        "time": { "type": "string" },
+        "bleedingLevel": { "type": "string", "enum": ["Moderado", "Abundante", "Muy Abundante", "Crítico"] },
+        "clots": { "type": "string", "enum": ["No", "Pequeños", "Grandes"] },
+        "painLevel": { "type": "integer" },
+        "emotionalState": { "type": "string" },
+        "notes": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "date", "time", "bleedingLevel", "clots", "painLevel", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/profile/info": {
+      "schema": "UserProfile",
+      "description": "Contains the structured ginecology survey answers for the logged-in user."
+    },
+    "/users/{userId}/progress/state": {
+      "schema": "UserProgress",
+      "description": "Contains metadata tracker for finished educational tracks, core juice check-ins and the 90 day calendar."
+    },
+    "/users/{userId}/logs/{logId}": {
+      "schema": "BleedingLog",
+      "description": "Secure list database of active bleeding metrics, symptoms and pelvic pain logs."
+    }
+  }
+}

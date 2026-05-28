@@ -1,0 +1,168 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Global Safety Net Default-Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Global Safety Helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Blueprint exact map size constraints and property types for UserProfile
+    function isValidUserProfile(data) {
+      return data.userId is string 
+        && data.userId.size() <= 128
+        && data.nombreCompleto is string 
+        && data.nombreCompleto.size() <= 200
+        && data.edad is string 
+        && data.edad.size() <= 20
+        && data.pais is string 
+        && data.pais.size() <= 100
+        && data.whatsapp is string 
+        && data.whatsapp.size() <= 30
+        && data.flujoIntensidad is string 
+        && data.flujoIntensidad.size() <= 50
+        && data.duracionCiclo is string 
+        && data.duracionCiclo.size() <= 50
+        && data.coagulosFrecuencia is string 
+        && data.coagulosFrecuencia.size() <= 50
+        && data.lacteosYAzucar is string 
+        && data.lacteosYAzucar.size() <= 50
+        && data.estresNivel is int 
+        && data.estresNivel >= 0 
+        && data.estresNivel <= 10
+        && data.suenoHoras is string 
+        && data.suenoHoras.size() <= 50
+        && data.energiaNivel is string 
+        && data.energiaNivel.size() <= 50
+        && data.actividadFisica is string 
+        && data.actividadFisica.size() <= 100
+        && data.saludDigestiva is string 
+        && data.saludDigestiva.size() <= 200
+        && data.historialMedico is list
+        && data.historialMedico.size() <= 50;
+    }
+
+    // Blueprint validation and property types for UserProgress
+    function isValidUserProgress(data) {
+      return data.userId is string 
+        && data.userId.size() <= 128
+        && data.completedDays is list 
+        && data.completedDays.size() <= 100
+        && data.completedVideos is list 
+        && data.completedVideos.size() <= 50
+        && data.coreJugoDrunk is bool;
+    }
+
+    // Blueprint validation and property types for BleedingLog
+    function isValidBleedingLog(data) {
+      return data.id is string 
+        && data.id.size() <= 128
+        && data.userId is string 
+        && data.userId.size() <= 128
+        && data.date is string 
+        && data.date.size() <= 15
+        && data.time is string 
+        && data.time.size() <= 10
+        && data.bleedingLevel is string 
+        && (data.bleedingLevel == 'Moderado' || data.bleedingLevel == 'Abundante' || data.bleedingLevel == 'Muy Abundante' || data.bleedingLevel == 'Crítico')
+        && data.clots is string 
+        && (data.clots == 'No' || data.clots == 'Pequeños' || data.clots == 'Grandes')
+        && data.painLevel is int 
+        && data.painLevel >= 0 
+        && data.painLevel <= 10
+        && data.emotionalState is string
+        && data.emotionalState.size() <= 100
+        && data.notes is string
+        && data.notes.size() <= 1000;
+    }
+
+    // Subcollections structural routing per UID
+    match /users/{userId} {
+      
+      match /profile/info {
+        allow get: if isOwner(userId);
+        
+        allow create: if isOwner(userId) 
+          && isValidUserProfile(incoming())
+          && incoming().userId == userId
+          && incoming().updatedAt == request.time;
+          
+        allow update: if isOwner(userId) 
+          && isValidUserProfile(incoming())
+          && incoming().userId == userId
+          && incoming().updatedAt == request.time
+          && incoming().diff(existing()).affectedKeys().hasOnly([
+            'nombreCompleto', 'edad', 'pais', 'whatsapp', 'flujoIntensidad', 
+            'duracionCiclo', 'coagulosFrecuencia', 'lacteosYAzucar', 
+            'estresNivel', 'suenoHoras', 'energiaNivel', 'actividadFisica', 
+            'saludDigestiva', 'historialMedico', 'updatedAt'
+          ]);
+          
+        allow delete: if isOwner(userId);
+      }
+
+      match /progress/state {
+        allow get: if isOwner(userId);
+        
+        allow create: if isOwner(userId) 
+          && isValidUserProgress(incoming())
+          && incoming().userId == userId
+          && incoming().updatedAt == request.time;
+          
+        allow update: if isOwner(userId) 
+          && isValidUserProgress(incoming())
+          && incoming().userId == userId
+          && incoming().updatedAt == request.time
+          && incoming().diff(existing()).affectedKeys().hasOnly([
+            'completedDays', 'completedVideos', 'coreJugoDrunk', 'updatedAt'
+          ]);
+          
+        allow delete: if isOwner(userId);
+      }
+
+      match /logs/{logId} {
+        allow get, delete: if isOwner(userId) && isValidId(logId);
+        
+        // Secure list queries explicitly limited to Owner
+        allow list: if isOwner(userId);
+        
+        allow create: if isOwner(userId) 
+          && isValidId(logId)
+          && isValidBleedingLog(incoming())
+          && incoming().id == logId
+          && incoming().userId == userId
+          && incoming().createdAt == request.time;
+          
+        allow update: if isOwner(userId)
+          && isValidId(logId)
+          && isValidBleedingLog(incoming())
+          && incoming().id == logId
+          && incoming().userId == userId
+          && incoming().createdAt == existing().createdAt
+          && incoming().diff(existing()).affectedKeys().hasOnly([
+            'date', 'time', 'bleedingLevel', 'clots', 'painLevel', 'emotionalState', 'notes'
+          ]);
+      }
+    }
+  }
+}
