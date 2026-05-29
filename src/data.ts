@@ -104,12 +104,42 @@ export const ONBOARDING_STEPS = [
   },
   {
     id: 6,
+    title: 'Calidad del Sueño',
+    subtitle: '¿Qué afecta tu descanso?',
+    description: 'Dormir mal afecta tu sistema endocrino. Identifica los principales factores disruptores.'
+  },
+  {
+    id: 7,
+    title: 'Estado Emocional',
+    subtitle: '¿Qué emociones han estado más presentes?',
+    description: 'La salud emocional influye directamente en el eje hipotálamo-hipófiso-adrenal.'
+  },
+  {
+    id: 8,
+    title: 'Consumo de Tabaco',
+    subtitle: '¿Fuma usted?',
+    description: 'El tabaquismo incrementa la inflamación celular y afecta el flujo pélvico.'
+  },
+  {
+    id: 9,
+    title: 'Soporte Social',
+    subtitle: 'Vida social y relaciones',
+    description: 'El apoyo de tu comunidad, pareja y familia reduce el estrés y amortigua los síntomas.'
+  },
+  {
+    id: 10,
+    title: 'Valoración Clínica',
+    subtitle: 'Escala de Valoración de Síntomas',
+    description: 'Por favor califique la gravedad de los siguientes síntomas clínicos de 0 a 4.'
+  },
+  {
+    id: 11,
     title: 'Digestión',
     subtitle: 'Salud intestinal',
     description: 'Un intestino saludable asegura la excreción correcta de los estrógenos metabolizados.'
   },
   {
-    id: 7,
+    id: 12,
     title: 'Historial Médico',
     subtitle: 'Diagnósticos previos',
     description: 'Esto nos permite ajustar el enfoque de análisis clínico y prevención.'

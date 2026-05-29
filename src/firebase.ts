@@ -1,5 +1,14 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, User } from 'firebase/auth';
+import { 
+  getAuth, 
+  signInWithPopup, 
+  GoogleAuthProvider, 
+  signOut, 
+  User,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  updateProfile
+} from 'firebase/auth';
 import { 
   getFirestore, 
   doc, 
@@ -15,13 +24,22 @@ import {
   deleteDoc,
   serverTimestamp
 } from 'firebase/firestore';
-import firebaseConfig from '../firebase-applet-config.json';
 import { UserProfile, BleedingLog } from './types';
 
+// Web App's production Firebase configuration directly integrated
+const clinicalFirebaseConfig = {
+  apiKey: "AIzaSyAvIJwJDwQSM0qD4Oew_-ePko0r2ZvSosQ",
+  authDomain: "miomas-ia.firebaseapp.com",
+  projectId: "miomas-ia",
+  storageBucket: "miomas-ia.firebasestorage.app",
+  messagingSenderId: "11875500040",
+  appId: "1:11875500040:web:b3a32d90f01962eed3d1bd"
+};
+
 // Initialize core Firebase Client Services
-const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId); /* CRITICAL */
-export const auth = getAuth();
+const app = initializeApp(clinicalFirebaseConfig);
+export const db = getFirestore(app);
+export const auth = getAuth(app);
 
 // Section 3 strict error enum and interfaces
 export enum OperationType {
@@ -193,7 +211,28 @@ export async function syncCloudToLocal(userId: string) {
         energiaNivel: dbProfile.energiaNivel || 'Media',
         actividadFisica: dbProfile.actividadFisica || 'Regular (2-3 veces/semana)',
         saludDigestiva: dbProfile.saludDigestiva || 'Regular con inflamación ocasional',
-        historialMedico: dbProfile.historialMedico || []
+        historialMedico: dbProfile.historialMedico || [],
+        suenoAfectadores: dbProfile.suenoAfectadores || [],
+        suenoAfectadoresOtro: dbProfile.suenoAfectadoresOtro || '',
+        emocionesPositivas: dbProfile.emocionesPositivas || [],
+        emocionesNegativas: dbProfile.emocionesNegativas || [],
+        emocionesOtro: dbProfile.emocionesOtro || '',
+        fumaHabito: dbProfile.fumaHabito || 'No',
+        vidaSocialComentarios: dbProfile.vidaSocialComentarios || '',
+        valoracionSintomas: dbProfile.valoracionSintomas || {
+          sintoma_sangrado_abundante: 0,
+          sintoma_periodos_prolongados: 0,
+          sintoma_coagulos_grandes: 0,
+          sintoma_dolor_pelvico: 0,
+          sintoma_inflamacion_abdominal: 0,
+          sintoma_presion_uterina: 0,
+          sintoma_fatiga_cansancio: 0,
+          sintoma_mareos_debilidad: 0,
+          sintoma_falta_concentracion: 0,
+          sintoma_miccion_frecuente: 0,
+          sintoma_estrenimiento: 0,
+          sintoma_vaciado_incompleto: 0,
+        }
       };
       localStorage.setItem('mi_salud_uterina_profile', JSON.stringify(cleanProfile));
     }
@@ -291,3 +330,17 @@ export async function deleteLogFromCloud(userId: string, logId: string) {
     handleFirestoreError(error, OperationType.DELETE, `users/${userId}/logs/${logId}`);
   }
 }
+
+/**
+ * Normalizes user input (phone number or email string) for safe Firebase Auth.
+ */
+export function normalizeIdentifierToEmail(identifier: string): string {
+  const trimmed = identifier.trim();
+  if (trimmed.includes('@')) {
+    return trimmed;
+  }
+  // Strip out any non-alphanumeric characters to get standard identifier digits
+  const digits = trimmed.replace(/[^a-zA-Z0-9]/g, '');
+  return `phone_${digits}@tumedicina.com`;
+}
+

@@ -16,6 +16,19 @@ export interface UserProfile {
   actividadFisica: string;
   saludDigestiva: string;
   historialMedico: string[];
+  // Sección Nueva 1: Sueño y descanso
+  suenoAfectadores: string[];
+  suenoAfectadoresOtro: string;
+  // Sección Nueva 2: Estado Emocional
+  emocionesPositivas: string[];
+  emocionesNegativas: string[];
+  emocionesOtro: string;
+  // Sección Nueva 3: Tabaco
+  fumaHabito: string;
+  // Sección Nueva 4: Vida Social y Relaciones
+  vidaSocialComentarios: string;
+  // Sección Nueva 5: Escala de valoración de síntomas (1-12)
+  valoracionSintomas: { [key: string]: number };
 }
 
 export interface BleedingLog {

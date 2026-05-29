@@ -8,6 +8,8 @@ interface HeaderProps {
   setActiveTab: (tab: string) => void;
   userName: string;
   onReset: () => void;
+  user?: any;
+  onLogout?: () => void;
 }
 
 export default function Header({
@@ -16,7 +18,9 @@ export default function Header({
   activeTab,
   setActiveTab,
   userName,
-  onReset
+  onReset,
+  user,
+  onLogout
 }: HeaderProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
@@ -35,7 +39,7 @@ export default function Header({
     }
   ]);
 
-  const avatarUrl = 'https://lh3.googleusercontent.com/aida-public/AB6AXuBwe7H93-z_-aPyIJWzCRpID-mbsfMDWwF4nqtSKkNgPXO0z81jLpknR5fj1hNTt5RGCECBrpFcbko8GZjBIMtYIQ_qB1-ahgv-JsE0iZo4qaGkJzsbgQR8f7xxvGvWGy2t58KPQAWpCNfsC5AABsyZAJ1rh8WQJqzDPS6Qr_aeMMxKeH44-eEc1-0EinvoHy4k9whwTsKQFMkFS1UZhKJOPz8bHy6HHmfMO7x-O380XxSSYWcImWTvZTsms1N97xahOaZt_9y4ZDs';
+  const avatarUrl = user?.photoURL || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=60';
 
   const markAllRead = () => {
     setNotifications(prev => prev.map(n => ({ ...n, unread: false })));
@@ -157,11 +161,25 @@ export default function Header({
               </button>
             </div>
 
-            {userName && (
+            {(user?.displayName || userName) && (
               <div className="bg-[#f4dce4]/30 rounded-xl p-3.5 mb-6">
-                <p className="text-xs text-[#594045] mb-0.5 font-medium">Paciente activa</p>
-                <p className="text-sm font-semibold text-[#1b1c1c]">{userName}</p>
-                <div className="flex items-center gap-1.5 mt-2 text-[11px] text-[#9b0044]">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-xs text-[#594045] mb-0.5 font-medium font-sans">Paciente activa</p>
+                    <p className="text-sm font-bold text-[#1b1c1c] font-sans">{user?.displayName || userName}</p>
+                  </div>
+                  <span className="text-[9px] bg-white text-[#9b0044] px-1.5 py-0.5 rounded-full border border-[#9b0044]/10 font-bold uppercase shrink-0 font-sans">
+                    Tu Medicina
+                  </span>
+                </div>
+                {user?.email && (
+                  <p className="text-[10px] text-gray-500 truncate mt-1.5 font-mono">
+                    {user.email.includes('phone_') 
+                      ? `Tel: ${user.email.replace('phone_', '').replace('@tumedicina.com', '')}` 
+                      : `Email: ${user.email}`}
+                  </p>
+                )}
+                <div className="flex items-center gap-1.5 mt-2.5 text-[11px] text-[#9b0044] font-sans">
                   <Clock className="w-3.5 h-3.5" />
                   <span>Ciclo de 90 Días: Día 12</span>
                 </div>
@@ -236,7 +254,23 @@ export default function Header({
             </nav>
           </div>
 
-          <div className="border-t border-gray-100 pt-4">
+          <div className="border-t border-gray-100 pt-4 space-y-2">
+            {onLogout && (
+              <button
+                id="drawer-logout-btn"
+                onClick={() => {
+                  if (window.confirm('¿Desea cerrar su sesión segura de Firebase?')) {
+                    onLogout();
+                    setDrawerOpen(false);
+                  }
+                }}
+                className="flex items-center gap-3 p-3 rounded-xl text-slate-700 hover:bg-slate-100 text-sm w-full transition-colors font-semibold cursor-pointer"
+              >
+                <LogOut className="w-4.5 h-4.5" />
+                <span>Cerrar Sesión</span>
+              </button>
+            )}
+
             <button
               id="drawer-reset-btn"
               onClick={() => {
@@ -245,9 +279,9 @@ export default function Header({
                   setDrawerOpen(false);
                 }
               }}
-              className="flex items-center gap-3 p-3 rounded-xl text-[#9b0044] text-sm hover:bg-[#f4dce4]/20 w-full transition-colors font-semibold"
+              className="flex items-center gap-3 p-3 rounded-xl text-[#9b0044] text-sm hover:bg-[#f4dce4]/20 w-full transition-colors font-semibold cursor-pointer"
             >
-              <LogOut className="w-4.5 h-4.5" />
+              <Settings className="w-4.5 h-4.5" />
               <span>Reiniciar Evaluación</span>
             </button>
           </div>
